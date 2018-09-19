@@ -79,7 +79,7 @@ Here is further explaination for each stages of Code Pipeline.
 
 **During Build stage**
 
-- During first phase, CodeBuild builds the docker container image and pushes to [Amazon ECR](https://aws.amazon.com/ecr/).
+- During first phase, CodeBuild builds the docker container image, runs unit tests on it and pushes to [Amazon ECR](https://aws.amazon.com/ecr/).
 
 - During second phase, Codebuild executes scripts/deployer.py which executes the following scripted logic
 

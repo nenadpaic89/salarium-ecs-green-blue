@@ -17,7 +17,7 @@ elb_client = boto3.client('elbv2')
 describe_elb_response = None
 
 def handler():
-    """ Main handler as an entry point of code. Handler controls the sequence of methods to call.No inputs required. 
+    """ Main handler as an entry point of code. Handler controls the sequence of methods to call.No inputs required.
     As this runs in AWS CodeBuild, the script gets all the values from the environment variables in codebuild.
         1. Retrieve artifact (build.json) from the previous stage (CodeBuild phase, which builds application container images)
         2. Check if the load balancer exists. Name of the ELB is fed through environment variable by the pipeline.
@@ -50,7 +50,7 @@ def check_elb_exists():
 
                 Raises: None, as we dont want to stop script execution. If the code reaches exception block, it means
                 that the load balancer does not exists.
-                
+
                 Returns:
                     Boolean, True if Load Balancer Exists, False, if Load balancer does not exists
 
@@ -73,7 +73,7 @@ def find_beta_targetgroup():
                     beta_sha: Sha or the image id running on target group at port 8080
                     live_identifier : tag key value of the target group, running on port 80 with KeyName as "Identifier"
                     live_sha: Sha or the image id running on target group at port 80
-                    
+
 
                 Raises:
                     Exception: Any exception thrown by handler
@@ -113,7 +113,7 @@ def find_beta_image_identifier(targetgrouparn):
                 Returns:
                     identifier : tag key value of the target group , with KeyName as "Identifier"
                     sha: Sha or the image id running on target group
-                    
+
                 Raises:
                     Exception: Any exception thrown by handler
 
@@ -133,7 +133,7 @@ def find_beta_image_identifier(targetgrouparn):
 def get_build_artifact_id(build_id):
     """Get artifact (build.json) from the build project . We are making this as an additional call to get the build.json
     which already contains the new built repository ECR path. We could have consolidated this script and executed in the build
-    phase, but as codebuild accepts the input from one source only (scripts and application code are in different sources), thats 
+    phase, but as codebuild accepts the input from one source only (scripts and application code are in different sources), thats
     why an additional call to retrieve build.json from a different build project.
 
                     Args:
@@ -189,7 +189,7 @@ def get_build_execution_id():
     for stage in response['stageStates']:
         if stage['stageName'] == 'Build':
             for actionstate in stage['actionStates']:
-                if actionstate['actionName'] == 'Build':
+                if actionstate['actionName'] == 'Build-Test':
                     return actionstate['latestExecution']['externalExecutionId']
 
 if __name__ == '__main__':

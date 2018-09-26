@@ -48,7 +48,8 @@ def put_job_failure(job, message):
     """
     print('Putting job failure')
     print(message)
-    code_pipeline.put_job_failure_result(jobId=job, failureDetails={'message': message, 'type': 'JobFailed'})
+    code_pipeline.put_job_failure_result(jobId=job, failureDetails={
+                                         'message': message, 'type': 'JobFailed'})
 
 
 def continue_job_later(job, message):
@@ -73,9 +74,11 @@ def continue_job_later(job, message):
 
     print('Putting job continuation')
     print(message)
-    code_pipeline.put_job_success_result(jobId=job, continuationToken=continuation_token)
+    code_pipeline.put_job_success_result(
+        jobId=job, continuationToken=continuation_token)
 
-def get_user_params(job_id,job_data):
+
+def get_user_params(job_id, job_data):
     """Gets user parameter object sent from CodePipeline
 
         Args:
@@ -91,7 +94,7 @@ def get_user_params(job_id,job_data):
         decoded_parameters = json.loads(user_parameters)
         print(decoded_parameters)
     except Exception as e:
-        put_job_failure(job_id,e)
+        put_job_failure(job_id, e)
         raise Exception('UserParameters could not be decoded as JSON')
 
     return decoded_parameters
@@ -109,7 +112,8 @@ def swaptargetgroups(elbname):
     """
     elbresponse = elbclient.describe_load_balancers(Names=[elbname])
 
-    listners = elbclient.describe_listeners(LoadBalancerArn=elbresponse['LoadBalancers'][0]['LoadBalancerArn'])
+    listners = elbclient.describe_listeners(
+        LoadBalancerArn=elbresponse['LoadBalancers'][0]['LoadBalancerArn'])
     for x in listners['Listeners']:
         if (x['Port'] == 443):
             livelistenerarn = x['ListenerArn']
@@ -160,10 +164,11 @@ def swaptargetgroups(elbname):
     )
 
     print(modifyOnLive)
-    modify_tags(livetargetgroup,"IsProduction","False")
+    modify_tags(livetargetgroup, "IsProduction", "False")
     modify_tags(betatargetgroup, "IsProduction", "True")
 
-def modify_tags(arn,tagkey,tagvalue):
+
+def modify_tags(arn, tagkey, tagvalue):
     """Modifies the tags on the target groups as an identifier, after swap has been performed to indicate,
         which target group is live and which target group is non-production
 
@@ -186,6 +191,8 @@ def modify_tags(arn,tagkey,tagvalue):
             },
         ]
     )
+
+
 def handler(event, context):
     """ Main haldler as an entry point of the AWS Lambda function. Handler controls the sequence of methods to call
     1. Read Job Data from input json
@@ -209,11 +216,11 @@ def handler(event, context):
         print(event)
         job_id = event['CodePipeline.job']['id']
         job_data = event['CodePipeline.job']['data']
-        params = get_user_params(job_id,job_data)
+        params = get_user_params(job_id, job_data)
         elb_name = params['ElbName']
         print("ELBNAME="+elb_name)
         swaptargetgroups(elb_name)
-        put_job_success(job_id,"Target Group Swapped.")
+        put_job_success(job_id, "Target Group Swapped.")
 
     except Exception as e:
         print('Function failed due to exception.')
@@ -223,6 +230,7 @@ def handler(event, context):
 
     print('Function complete.')
     return "Complete."
+
 
 if __name__ == "__main__":
     handler(sys.argv[0], None)

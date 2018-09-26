@@ -16,6 +16,7 @@ elb_name = os.environ.get('ELB_NAME')
 elb_client = boto3.client('elbv2')
 describe_elb_response = None
 
+
 def handler():
     """ Main handler as an entry point of code. Handler controls the sequence of methods to call.No inputs required.
     As this runs in AWS CodeBuild, the script gets all the values from the environment variables in codebuild.
@@ -37,11 +38,12 @@ def handler():
     build_id = get_build_artifact_id(get_build_execution_id())
     if check_elb_exists():
         beta_identifier, beta_sha, live_identifier, live_sha = find_beta_targetgroup()
-        cf_inputs = { beta_identifier:str(build_id),live_identifier:live_sha }
+        cf_inputs = {beta_identifier: str(build_id), live_identifier: live_sha}
     else:
         cf_inputs = {"Code1": str(build_id), "Code2": str(build_id)}
     with open('cf_inputs.json', 'w+') as outfile:
         json.dump(cf_inputs, outfile)
+
 
 def check_elb_exists():
     """Checks if the Load Balancer Exists
@@ -57,12 +59,14 @@ def check_elb_exists():
     """
     global describe_elb_response
     try:
-        describe_elb_response = elb_client.describe_load_balancers(Names=[elb_name])
+        describe_elb_response = elb_client.describe_load_balancers(Names=[
+                                                                   elb_name])
         return True
 
     except:
         print("Load Balancer does not exists")
         return False
+
 
 def find_beta_targetgroup():
     """ Discovers the green side ( non production side) target group, which is running on port 8080.
@@ -80,7 +84,8 @@ def find_beta_targetgroup():
 
     """
 
-    listners = elb_client.describe_listeners(LoadBalancerArn=describe_elb_response['LoadBalancers'][0]['LoadBalancerArn'])
+    listners = elb_client.describe_listeners(
+        LoadBalancerArn=describe_elb_response['LoadBalancers'][0]['LoadBalancerArn'])
 
     for x in listners['Listeners']:
         if (x['Port'] == 80):
@@ -100,10 +105,11 @@ def find_beta_targetgroup():
             live_target_group = x['Actions'][0]['TargetGroupArn']
             betarulearn = x['RuleArn']
 
-    beta_identifier,beta_sha = find_beta_image_identifier(beta_target_group)
+    beta_identifier, beta_sha = find_beta_image_identifier(beta_target_group)
     live_identifier, live_sha = find_beta_image_identifier(live_target_group)
 
-    return beta_identifier,beta_sha,live_identifier,live_sha
+    return beta_identifier, beta_sha, live_identifier, live_sha
+
 
 def find_beta_image_identifier(targetgrouparn):
     """Queries the tags on TargetGroups
@@ -124,11 +130,13 @@ def find_beta_image_identifier(targetgrouparn):
     for tags in response['TagDescriptions']:
         for tag in tags['Tags']:
             if tag['Key'] == "Identifier":
-                print("Image identifier string on " + targetgrouparn + " : " + tag['Value'])
+                print("Image identifier string on " +
+                      targetgrouparn + " : " + tag['Value'])
                 identifier = tag['Value']
             if tag['Key'] == "Image":
                 imagesha = tag['Value']
-    return identifier,imagesha
+    return identifier, imagesha
+
 
 def get_build_artifact_id(build_id):
     """Get artifact (build.json) from the build project . We are making this as an additional call to get the build.json
@@ -166,8 +174,8 @@ def get_build_artifact_id(build_id):
         print(objbuild['tag'])
         return objbuild['tag']
 
-def get_build_execution_id():
 
+def get_build_execution_id():
     """Query Environment Variables to reteieve "CODEBUILD_INITIATOR", which gives codebuild id.
     Use this ID to call codepipeline API to retrieve last successful build ID (build phase)
 
@@ -191,6 +199,7 @@ def get_build_execution_id():
             for actionstate in stage['actionStates']:
                 if actionstate['actionName'] == 'Build-Test':
                     return actionstate['latestExecution']['externalExecutionId']
+
 
 if __name__ == '__main__':
     handler()

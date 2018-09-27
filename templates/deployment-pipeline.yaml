@@ -237,7 +237,7 @@ Resources:
                 - printf "%s:%s" "$REPOSITORY_URI" "$(cat /tmp/build_id.out)" > /tmp/build_tag.out
                 - printf "%s:%s" "$REPOSITORY_URI2" "$(cat /tmp/build_id.out)" > /tmp/build_tag2.out
                 - printf '{"tag":"%s"}' "$(cat /tmp/build_id.out)" > /tmp/build.json
-                - $(aws ecr get-login)
+                - $(aws ecr get-login --no-include-email)
             build:
               commands:
                 - docker build --tag "$(cat /tmp/build_tag.out)" .
@@ -252,7 +252,7 @@ Resources:
             discard-paths: yes
       Environment:
         ComputeType: 'BUILD_GENERAL1_SMALL'
-        Image: 'aws/codebuild/docker:1.12.1'
+        Image: 'aws/codebuild/docker:17.09.0'
         Type: 'LINUX_CONTAINER'
         EnvironmentVariables:
           - Name: AWS_DEFAULT_REGION
